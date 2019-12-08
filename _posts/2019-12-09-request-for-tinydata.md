@@ -1,15 +1,17 @@
 ---
 layout: blog
-title: Puppet Tip 107 - Request for Tiny Data
+title: Puppet Tip 107 - Request for Application Information in Tiny Data
 ---
 
-Before talking about Tiny data with have to mention
+We at example42 want to extend the number of applications we are able to manage with [Tiny Puppet](https://github.com/example42/puppet-tp){:target="_blank"}.
+
+Tiny Puppet fetches application settings from Tiny Data.
 
 ### Tiny Puppet (tp)
 
-If you know something about example42, you should know that we developed [Tiny Puppet](https://github.com/example42/puppet-tp){:target="_blank"} (tp), a Puppet module which allows to manage potentially **any application** on any **Operating System**.
+If you know about example42, you might know that we developed [Tiny Puppet](https://github.com/example42/puppet-tp){:target="_blank"} (tp), a Puppet module which allows to manage potentially **any application** on any **Operating System**.
 
-What exactly, currently Tiny Puppet can manage?
+What exactly can Tiny Puppet currently manage?
 
 **Any application** that can be installed via a Puppet **package** resource.
 
@@ -39,10 +41,6 @@ Just to give you an idea, the following code:
         template     => $template,
         options_hash => $options,
       }
-      # Alternative which does the same:
-      # tp::conf { 'openssh':
-      #   content => template($template),
-      # }      
     }
 
 will install the package, configure the file with the contents we want, manage the service (taking care of dependencies and different names and paths) for openssh.
@@ -67,7 +65,7 @@ Content of the template, to be placed in our profile module, could be something 
 
 ### Tiny data
 
-Tiny Puppet actually has a, non intrusive, dependency: the [tinydata](https://github.com/example42/tinydata){:target="_blank"} module.
+Tiny Puppet actually has a non intrusive dependency: the [tinydata](https://github.com/example42/tinydata){:target="_blank"} module.
 
 Here is where the tp **magic** becomes plain information easy to read, fix, and improve.
 
@@ -91,7 +89,8 @@ For example, openssh default tiny data looks as follows:
       nodaemon_args: '-D'                # Used when starting the app in a container
       validate_cmd: 'sshd -t -f %'       # If present, the syntax of the config file is automatically validated before change
 
-But there are variations for Debian and Derivatives:
+Some data might be differente among differente operatingsystems.
+For Debian based systems:
 
     openssh::settings:
       config_file_mode: '0644'
@@ -125,10 +124,10 @@ This tells tiny puppet in what files to look for tinydata starting from:
 
 - OSfamily files specific for the app, here in [data/openssh/osfamily](https://github.com/example42/tinydata/tree/master/data/openssh/osfamily){:target="_blank"}
 - Application defaults [data/openssh/default.yaml](https://github.com/example42/tinydata/tree/master/data/openssh/default.yaml){:target="_blank"}
-- OS specific general data in [data/default/](https://github.com/example42/tinydata/tree/master/data/default){:target="_blank"}
+- application OS specific general data in [data/default/](https://github.com/example42/tinydata/tree/master/data/default){:target="_blank"}
 - the defaults in [data/default.yaml](https://github.com/example42/tinydata/blob/master/data/default.yaml){:target="_blank"}
 
-Lookup is an hiera like (note that Hiera is not actually used to get his data): first value found while crossing the hierarchy has precedence on values found, for any key, at lower hierarchy levels.
+Lookup is an hiera like (note that Hiera is not actually used to get this data): first value found while crossing the hierarchy has precedence on values found, for any key, at lower hierarchy levels.
 
 
 Tiny data can define:
@@ -141,7 +140,7 @@ Tiny data can define:
 
 ### Managing additional repositories
 
-There 2 ways to are manage repos, the first is to specify the typical data to use in apt repos:
+There 2 ways to manage repos, the first is to specify the typical data to use in apt repos:
 
     elasticsearch::settings:
       init_file_path: '/etc/default/elasticsearch'
@@ -160,7 +159,7 @@ or yum repos:
       key: 'D88E42B4'
       key_url: 'http://packages.elastic.co/GPG-KEY-elasticsearch'
 
-the second, when repo_package_url is defined, involves setting the download url of the release package, with all the necessary repository configurations:
+the second, when `repo_package_url` is defined, involves setting the download url of the release package, with all the necessary repository configurations:
 
     puppet::settings:
       repo_package_url: 'https://yum.puppet.com/puppet/puppet-release-el-7.noarch.rpm'
@@ -183,7 +182,7 @@ tp::install { 'puppet':
 }
 ```
 
-All the tinydata necessary and specific to the upstream repo packages, in placed in (for this case with puppet) the [data/puppet/upstream](https://github.com/example42/tinydata/tree/master/data/puppet/upstream){:target="_blank"} directory.
+All the necessary tinydata and the specific upstream repo packages information is placed in (for this case with puppet) the [data/puppet/upstream](https://github.com/example42/tinydata/tree/master/data/puppet/upstream){:target="_blank"} directory.
 
 This is a new feature and we currently have very few application with upstream data info. 
 
